@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-danger: var(--danger);
+  --color-live: var(--live);
+}
+
+:root {
+  --bg: #eef3f2;
+  --surface: #ffffff;
+  --sunken: #e6eeec;
+  --line: #d9e3e1;
+  --ink: #0e1c1f;
+  --muted: #5f7377;
+  --brand: #0b7a75;
+  --brand-ink: #ffffff;
+  --danger: #b42318;
+  --live: #1a9f5b;
+}
+.dark {
+  --bg: #0a1214;
+  --surface: #111c1f;
+  --sunken: #0d1719;
+  --line: #1f2f33;
+  --ink: #e6f0ef;
+  --muted: #8aa1a5;
+  --brand: #22b3a8;
+  --brand-ink: #04201e;
+  --danger: #f97066;
+  --live: #3ccf88;
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
