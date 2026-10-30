@@ -72,4 +72,5 @@ export const chatApi = {
           `/api/messages/with/${encodeURIComponent(peer)}?size=${size}${beforeId ? `&beforeId=${encodeURIComponent(beforeId)}` : ""}`,
           token,
       ),
+  conversations: (token: string) => get<unknown>("/api/messages/conversations", token),
 };

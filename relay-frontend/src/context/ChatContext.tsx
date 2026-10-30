@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from "./AuthContext";
 import { createSocket, type ChatSocket, type ConnState } from "../services/websocketService";
 import { ApiError, chatApi } from "../services/api";
-import { readError, readHistory, readIncoming, readPresence, type ChatMessage } from "../lib/contract";
+import { readConversations, readError, readHistory, readIncoming, readPresence, type ChatMessage } from "../lib/contract";
+
 
 const PAGE = 30;
 
@@ -76,6 +77,32 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       return { ...prev, [peer]: { ...c, messages: merge(c.messages, [msg]), unread: unread ? c.unread + 1 : c.unread } };
     });
   }, []);
+
+  // Sidebar: load existing conversations once per session.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    chatApi.conversations(token)
+        .then((raw) => {
+          if (cancelled) return;
+          const list = readConversations(raw, me);
+          if (!list) { setNotice("Couldn't load your conversations."); return; }
+          setConvs((prev) => {
+            const next = { ...prev };
+            for (const s of list) {
+              const c = next[s.peer] ?? blank(s.peer);
+              next[s.peer] = { ...c, messages: s.last ? merge(c.messages, [s.last]) : c.messages, unread: Math.max(c.unread, s.unread) };
+            }
+            return next;
+          });
+        })
+        .catch((e) => {
+          if (cancelled) return;
+          if (e instanceof ApiError && e.status === 401) logout();
+          else setNotice("Couldn't load your conversations.");
+        });
+    return () => { cancelled = true; };
+  }, [token, me, logout]);
 
   // One realtime socket for the whole session.
   useEffect(() => {

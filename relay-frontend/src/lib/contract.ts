@@ -97,3 +97,29 @@ export function readHistory(raw: unknown, me: string, peer: string): HistoryPage
   const nextCursor = r.nextCursor == null ? null : String(r.nextCursor);
   return { messages, nextCursor, hasMore: r.hasMore && nextCursor !== null };
 }
+
+export interface ConversationSummary { peer: string; last: ChatMessage | null; unread: number }
+
+/** GET /api/messages/conversations → [{ peer, lastMessage, unreadCount? }]. Returns null if malformed. */
+export function readConversations(raw: unknown, me: string): ConversationSummary[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out: ConversationSummary[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const r = item as Record<string, unknown>;
+    const peer = str(r.peer);
+    if (!peer) continue;
+    let last: ChatMessage | null = null;
+    if (r.lastMessage && typeof r.lastMessage === "object") {
+      const x = r.lastMessage as Record<string, unknown>;
+      const sender = str(x.sender);
+      const content = typeof x.content === "string" ? x.content : null;
+      const at = new Date(String(x.createdAt)).getTime();
+      if (x.id != null && sender && content !== null) {
+        last = { id: String(x.id), peer, from: sender === me ? "me" : "them", content, at: Number.isFinite(at) ? at : 0 };
+      }
+    }
+    out.push({ peer, last, unread: typeof r.unreadCount === "number" ? r.unreadCount : 0 });
+  }
+  return out;
+}
